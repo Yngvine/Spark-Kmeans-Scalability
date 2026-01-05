@@ -1,6 +1,6 @@
 global_0.1_degree_representation/
 global_0.1_degree_tiff_all/
-
+*.parquet
 
 
 # Byte-compiled / optimized / DLL files
