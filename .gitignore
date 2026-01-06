@@ -2,6 +2,8 @@ global_0.1_degree_representation/
 global_0.1_degree_tiff_all/
 *.parquet
 
+spark_temp/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

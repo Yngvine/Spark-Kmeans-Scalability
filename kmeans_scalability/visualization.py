@@ -114,8 +114,9 @@ def create_mosaic(tile_metadata, cluster_labels):
         
     print(f"\n✓ Mosaic assembly complete!")
     
+    output_transform = from_bounds(min_x, min_y, max_x, max_y, width, height)
     extent = [min_x, max_x, min_y, max_y]
-    return cluster_mosaic, extent, tile_maps[0]['crs']
+    return cluster_mosaic, extent, tile_maps[0]['crs'], output_transform
 
 def plot_mosaic(mosaic, extent, k, title='Georeferenced Map - Clusters', label_prefix='Cluster', class_names=None):
     """
@@ -124,8 +125,10 @@ def plot_mosaic(mosaic, extent, k, title='Georeferenced Map - Clusters', label_p
     min_x, max_x, min_y, max_y = extent
     
     # Create custom colormap with black for no data
-    cmap_clusters = plt.get_cmap('inferno').copy()
-    colors_list = [cmap_clusters(i) for i in range(k)]
+    cmap_clusters = plt.get_cmap('inferno')
+    # Use linspace to sample k colors from the colormap range [0, 1]
+    # We start from 0.2 to avoid very dark colors that look like the background
+    colors_list = [cmap_clusters(x) for x in np.linspace(0.2, 1.0, k)]
     colors_list.insert(0, (0, 0, 0, 1))  # Black for no-data (-1)
 
     custom_cmap = mcolors.ListedColormap(colors_list)
@@ -174,8 +177,8 @@ def plot_comparison(cluster_mosaic, knn_mosaic, extent, k, class_names):
     
     # Colormaps
     # Clusters
-    cmap_clusters = plt.get_cmap('inferno').copy()
-    colors_list = [cmap_clusters(i) for i in range(k)]
+    cmap_clusters = plt.get_cmap('inferno')
+    colors_list = [cmap_clusters(x) for x in np.linspace(0.2, 1.0, k)]
     colors_list.insert(0, (0, 0, 0, 1))
     custom_cmap = mcolors.ListedColormap(colors_list)
     bounds = list(range(-1, k + 1))

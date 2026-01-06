@@ -17,6 +17,7 @@ class KMeansInterface(ABC):
         self.prediction_col = prediction_col
         self.model = None
         self.training_cost = None
+        self.training_time = 0.0
 
     @abstractmethod
     def fit(self, data) -> Any:
@@ -46,9 +47,9 @@ class SparkMLKMeansModel(KMeansInterface):
         kmeans = SparkKMeans(k=self.k, seed=self.seed, maxIter=self.max_iter, featuresCol=self.features_col, predictionCol=self.prediction_col)
         self.model = kmeans.fit(data)
         
-        elapsed_time = time.time() - start_time
+        self.training_time = time.time() - start_time
         self.training_cost = self.model.summary.trainingCost
-        print(f"Training completed in {elapsed_time:.2f} seconds")
+        print(f"Training completed in {self.training_time:.2f} seconds")
         print(f"Within Set Sum of Squared Errors (WSSSE): {self.training_cost:.2f}")
         return self
 
