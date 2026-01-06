@@ -124,7 +124,7 @@ def plot_mosaic(mosaic, extent, k, title='Georeferenced Map - Clusters', label_p
     min_x, max_x, min_y, max_y = extent
     
     # Create custom colormap with black for no data
-    cmap_clusters = plt.cm.tab10.copy()
+    cmap_clusters = plt.get_cmap('inferno').copy()
     colors_list = [cmap_clusters(i) for i in range(k)]
     colors_list.insert(0, (0, 0, 0, 1))  # Black for no-data (-1)
 
@@ -136,7 +136,7 @@ def plot_mosaic(mosaic, extent, k, title='Georeferenced Map - Clusters', label_p
     fig, ax = plt.subplots(figsize=(14, 10))
 
     im = ax.imshow(mosaic, cmap=custom_cmap, norm=norm, interpolation='nearest',
-                   extent=[min_x, max_x, min_y, max_y])
+                   extent=(min_x, max_x, min_y, max_y))
 
     ax.set_title(f'{title}', fontsize=16, fontweight='bold')
     ax.set_xlabel('Longitude', fontsize=12)
@@ -174,7 +174,7 @@ def plot_comparison(cluster_mosaic, knn_mosaic, extent, k, class_names):
     
     # Colormaps
     # Clusters
-    cmap_clusters = plt.cm.tab10.copy()
+    cmap_clusters = plt.get_cmap('inferno').copy()
     colors_list = [cmap_clusters(i) for i in range(k)]
     colors_list.insert(0, (0, 0, 0, 1))
     custom_cmap = mcolors.ListedColormap(colors_list)
@@ -182,7 +182,7 @@ def plot_comparison(cluster_mosaic, knn_mosaic, extent, k, class_names):
     norm = mcolors.BoundaryNorm(bounds, custom_cmap.N)
     
     # Classes
-    cmap_classes = plt.cm.tab10.copy()
+    cmap_classes = plt.get_cmap('tab10').copy()
     colors_list_classes = [cmap_classes(i) for i in range(n_classes)]
     colors_list_classes.insert(0, (0, 0, 0, 1))
     custom_cmap_classes = mcolors.ListedColormap(colors_list_classes)
@@ -193,7 +193,7 @@ def plot_comparison(cluster_mosaic, knn_mosaic, extent, k, class_names):
 
     # Left: K-means clusters
     im1 = axes[0].imshow(cluster_mosaic, cmap=custom_cmap, norm=norm, 
-                         interpolation='nearest', extent=[min_x, max_x, min_y, max_y])
+                         interpolation='nearest', extent=(min_x, max_x, min_y, max_y))
     axes[0].set_title(f'K-means Clusters (k={k})', fontsize=16, fontweight='bold')
     axes[0].set_xlabel('Longitude', fontsize=12)
     axes[0].set_ylabel('Latitude', fontsize=12)
@@ -205,7 +205,7 @@ def plot_comparison(cluster_mosaic, knn_mosaic, extent, k, class_names):
 
     # Right: KNN interpretable classes
     im2 = axes[1].imshow(knn_mosaic, cmap=custom_cmap_classes, norm=norm_classes,
-                         interpolation='nearest', extent=[min_x, max_x, min_y, max_y])
+                         interpolation='nearest', extent=(min_x, max_x, min_y, max_y))
     axes[1].set_title(f'KNN Interpretable Classes', fontsize=16, fontweight='bold')
     axes[1].set_xlabel('Longitude', fontsize=12)
     axes[1].set_ylabel('Latitude', fontsize=12)

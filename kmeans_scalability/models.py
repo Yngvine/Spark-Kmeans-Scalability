@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from pyspark.ml.clustering import KMeans as SparkKMeans
 from pyspark.ml.feature import VectorAssembler
 import time
@@ -18,7 +19,7 @@ class KMeansInterface(ABC):
         self.training_cost = None
 
     @abstractmethod
-    def fit(self, data):
+    def fit(self, data) -> Any:
         """
         Train the K-Means model.
         :param data: Input data (Spark DataFrame or RDD depending on implementation)
@@ -26,7 +27,7 @@ class KMeansInterface(ABC):
         pass
 
     @abstractmethod
-    def transform(self, data):
+    def transform(self, data) -> Any:
         """
         Assign clusters to the data.
         :param data: Input data
