@@ -88,7 +88,7 @@ All implementations use K=4 clusters, maximum 20 iterations, and seed=42 for rep
 To provide interpretable results, we trained a K-Nearest Neighbors classifier (k=5) using scikit-learn on the 80 manually labeled points. The workflow consists of:
 
 1. Load labeled points from GeoJSON with coordinate transformation (EPSG:4326 → EPSG:32630)
-2. Match labeled coordinates to nearest embedding points using KD-Tree spatial indexing
+2. Match labeled coordinates to nearest embedding points using KD-Tree spatial indexing @kdtree
 3. Extract 128-dimensional features for matched points
 4. Train KNN classifier with Euclidean distance metric
 5. Predict land cover classes for all 12 million points
@@ -221,7 +221,7 @@ This paper presented a comprehensive scalability analysis of distributed K-means
 
 *Limitations:* Our study focuses on single-node Spark deployment. Multi-node cluster experiments would reveal additional scalability insights and network communication overhead. The labeled dataset (80 points) is relatively small; larger ground truth sets could improve KNN generalization.
 
-*Technical Challenges:* Working with geospatial data presented significant challenges, particularly in managing coordinate reference systems (CRS transformations between EPSG:4326 and EPSG:32630), ensuring spatial coherence in distributed processing, and integrating outputs with GIS environments. However, leveraging prior knowledge in geospatial analysis and careful attention to spatial metadata enabled successful generation of properly georeferenced outputs compatible with professional GIS software. The effort invested in understanding raster operations, spatial indexing (KD-Tree), and CRS handling proved essential for producing scientifically valid results.
+*Technical Challenges:* Working with geospatial data presented significant challenges, particularly in managing coordinate reference systems (CRS transformations between EPSG:4326 and EPSG:32630), ensuring spatial coherence in distributed processing, and integrating outputs with GIS environments. However, leveraging prior knowledge in geospatial analysis and careful attention to spatial metadata enabled successful generation of properly georeferenced outputs compatible with professional GIS software. The effort invested in understanding raster operations, spatial indexing (KD-Tree) @kdtree, and CRS handling proved essential for producing scientifically valid results.
 
 
 *Future Work:* Several promising directions emerge:
