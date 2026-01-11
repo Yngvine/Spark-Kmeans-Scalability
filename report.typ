@@ -5,7 +5,7 @@
 #show: ieee.with(
   title: [Scalability Analysis of Distributed K-Means Clustering on Geospatial Satellite Embeddings],
   abstract: [
-    This paper presents a comprehensive scalability study of K-means clustering implementations on large-scale geospatial datasets using Apache Spark. We analyze five different implementations ranging from single-machine NumPy baselines to distributed Spark MLlib and custom RDD-based approaches, processing approximately 12 million satellite image embeddings from the GeoTessera dataset. Our study evaluates performance metrics including training time and Within-Set Sum of Squared Errors (WSSSE) across varying data scales (10% to 100% of the dataset). Additionally, we bridge the interpretability gap of unsupervised clustering by integrating K-Nearest Neighbors (KNN) supervised classification on manually labeled land cover classes (Vegetation, Forest, Urban, Agricultural). Results demonstrate that Spark MLlib achieves near-linear scale-up behavior for large datasets, while custom RDD implementations lack efficiency. We provide georeferenced visualization outputs suitable for Geographic Information Systems (GIS), enabling practical land cover analysis applications. Our findings contribute insights into distributed machine learning scalability patterns and practical geospatial data science workflows.
+    This paper presents a comprehensive scalability study of K-means clustering implementations on large-scale geospatial datasets using Apache Spark. We analyze five different implementations ranging from single-machine NumPy baselines to distributed Spark MLlib and custom RDD-based approaches, processing approximately 12 million satellite image embeddings from the GeoTessera dataset. Our study evaluates performance metrics including training time and Within-Set Sum of Squared Errors (WSSSE) across varying data scales (10% to 100% of the dataset). Additionally, we bridge the interpretability gap of unsupervised clustering by integrating K-Nearest Neighbors (KNN) supervised classification on manually labeled land cover classes (Vegetation, Forest, Urban, Agricultural). Results demonstrate that Spark MLlib achieves near-linear size-up behavior for large datasets, while custom RDD implementations lack efficiency. We provide georeferenced visualization outputs suitable for Geographic Information Systems (GIS), enabling practical land cover analysis applications. Our findings contribute insights into distributed machine learning scalability patterns and practical geospatial data science workflows.
   ],
   authors: (
     (
@@ -29,6 +29,7 @@ K-means clustering is one of the most widely used unsupervised learning algorith
 
 This paper addresses three key research questions: (1) How do different K-means implementations scale with increasing data volumes? (2) What are the trade-offs between implementation complexity and performance? (3) How can we add interpretability to unsupervised clustering results for geospatial applications?
 
+
 *Contributions:* Our work makes the following contributions:
 - Implementation and benchmarking of five K-means variants (local NumPy baseline, Spark MLlib, custom RDD, DataFrame with UDF, and optimized DataFrame implementations)
 - Scalability analysis on 2 million 128-dimensional satellite embeddings from the Pamplona region of Spain
@@ -36,9 +37,9 @@ This paper addresses three key research questions: (1) How do different K-means 
 - Generation of georeferenced GeoTIFF outputs suitable for GIS software integration
 - Open-source codebase with reproducible Jupyter notebooks
 
-The remainder of this paper is organized as follows: Section II reviews related work in distributed clustering and satellite image analysis. Section III describes our methodology including dataset preparation and implementation details. Section IV details the experimental setup. Section V presents scalability results and comparative analysis. Section VI concludes with future research directions.
+The remainder of this paper is organized as follows: #link(<section2>,[Section II])  reviews related work in distributed clustering and satellite image analysis. #link(<section3>,[Section III]) describes our methodology including dataset preparation and implementation details. #link(<section4>,[Section IV]) details the experimental setup. #link(<section5>,[Section V]) presents scalability results and comparative analysis. #link(<section6>,[Section VI]) concludes with future research directions.
 
-= Background and Related Work
+= Background and Related Work <section2>
 
 == Distributed K-means Clustering
 
@@ -52,7 +53,10 @@ Earth observation data analysis has benefited tremendously from deep learning an
 
 A key challenge in unsupervised clustering is interpreting cluster assignments in domain-specific contexts. Hybrid approaches combining unsupervised and supervised learning  have shown promise. For geospatial applications, small sets of ground-truth labels can be used to map clusters to meaningful categories . Our work extends this by using K-Nearest Neighbors classification trained on manually labeled points to provide interpretable land cover classes.
 
-= Methodology
+== Plotting Predictions
+The plots that will be displayed throughout this paper were created by overlying the TIFF outputs generated by our code in QGIS software, which is a professional open-source Geographic Information System (GIS) application widely used in the geospatial community for visualizing and analyzing spatial data.
+
+= Methodology <section3>
 
 == Dataset Description
 
@@ -65,7 +69,9 @@ Our study uses the GeoTessera dataset containing Sentinel-2 satellite embeddings
 - *Storage format:* Parquet columnar format for efficient distributed processing
 - *Coordinate system:* EPSG:32630 (UTM Zone 30N)
 
+
 For supervised classification evaluation, we manually created a labeled dataset (KNN_POINTS.geojson) containing 80 ground truth points with 20 samples per class: Vegetation, Forest, Urban, and Agricultural land cover types.
+
 
 == K-means Implementations
 
@@ -73,7 +79,7 @@ We implemented and compared five K-means variants:
 
 *1) Local NumPy Baseline:* Single-machine implementation using NumPy broadcasting for vectorized distance calculations. This serves as a performance baseline and demonstrates the computational limits of non-distributed approaches. Initialization uses random centroid selection, with iterative assignment and update steps until convergence (Δ < $10^(-4)$).
 
-*2) Spark MLlib:* PySpark's official MLlib KMeans implementation utilizing RDD-based distributed computation with broadcast variables for centroids. Features include K-means|| initialization  for improved convergence and automatic caching of intermediate results.
+*2) Spark MLlib:* PySpark's official MLlib KMeans implementation utilizing RDD-based distributed computation with broadcast variables for centroids. Features include K-means initialization  for improved convergence and automatic caching of intermediate results.
 
 *3) Custom RDD Implementation:* Low-level implementation using Spark RDD transformations (map, reduceByKey). Provides explicit control over distributed computation patterns with broadcast centroids. Demonstrates the fundamental MapReduce pattern for K-means.
 
@@ -81,11 +87,21 @@ We implemented and compared five K-means variants:
 
 *5) Optimized DataFrame:* Utilizes built-in Spark SQL functions without UDFs, maximizing Catalyst optimizer benefits and reducing serialization costs.
 
+#figure(
+  image("report_figures/k-means-wms.png", width: 60%),
+  caption: [Sample of WMS satellite imagery from the Pamplona region, showcasing in greater detail than Sentinel-2 the diverse land cover types present. Here the the K-means predictions from our experiments are overlaid on top of the satellite image for visual validation.]
+)
 All implementations use K=4 clusters, maximum 20 iterations, and seed=42 for reproducibility.
+
 
 == KNN Classification for Interpretability
 
-To provide interpretable results, we trained a K-Nearest Neighbors classifier (k=5) using scikit-learn on the 80 manually labeled points. The workflow consists of:
+To provide interpretable results, we trained a K-Nearest Neighbors classifier (k=5) using scikit-learn on the 80 manually labeled points. 
+#figure(
+  image("report_figures/hand_labeled_points.png", width: 80%),
+  caption: [Hand selected points used for supervised classification with KNN, displayed in QGIS software over a Sentinel-2 basemap and the K-means clustering results for visual reference.]
+)
+The workflow consists of:
 
 1. Load labeled points from GeoJSON with coordinate transformation (EPSG:4326 → EPSG:32630)
 2. Match labeled coordinates to nearest embedding points using KD-Tree spatial indexing @kdtree
@@ -106,7 +122,7 @@ We generate multiple visualizations:
 
 The GeoTIFF outputs enable integration with professional GIS software (QGIS, ArcGIS) for further spatial analysis and validation.
 
-= Experimental Setup
+= Experimental Setup <section4>
 
 == Hardware and Software Configuration
 
@@ -139,7 +155,7 @@ We evaluate implementations using:
 1. *Training Time:* Wall-clock time from initialization to convergence (seconds)
 2. *WSSSE (Within-Set Sum of Squared Errors):* $sum_(i=1)^n min_(j) ||x_i - c_j||^2$ where $x_i$ are data points and $c_j$ are centroids
 3. *Speedup:* Ratio of training time compared to baseline
-4. *Scale-up Efficiency:* Deviation from ideal linear scaling as data size increases
+4. *Size-up Efficiency:* Deviation from ideal linear scaling as data size increases
 
 == Scalability Test Procedure
 
@@ -148,7 +164,7 @@ For SizeUp testing , we:
 1. Sample dataset at fractions: 10%, 25%, 50%, 75%, 100%
 2. Train each implementation on each sample size
 3. Record training time and WSSSE
-4. Compare against ideal linear scale-up baseline (2× data → 2× time)
+4. Compare against ideal linear size-up baseline (2× data → 2× time)
 5. Identify performance bottlenecks and overhead sources
 
 Each experiment is repeated with fixed random seed (42) for reproducibility. The dataset is cached in memory before training to eliminate I/O effects from measurements.
@@ -162,12 +178,12 @@ KNN classification quality is validated through:
 - Spatial coherence analysis (neighboring pixels should have similar labels)
 - Comparison with reference land cover datasets when available
 
-= Results and Discussion
+= Results and Discussion <section5>
 
 == Scalability Analysis
 
 #figure(
-  image("report_figures/size_up.png", width: 80%),
+  image("report_figures/size_up.png", width: 100%),
   caption: [Training time vs. data size for five K-means implementations. Spark MLlib demonstrates near-linear scaling, while local NumPy shows quadratic growth. Custom RDD and optimized DataFrame implementations show intermediate performance with acceptable overhead for flexibility benefits.]
 )
 
@@ -198,7 +214,30 @@ KNN classifier achieves strong spatial coherence in predictions, with neighborin
 - Strong correspondence between specific clusters and land cover classes 
 - KNN tends to be biased towards forested areas while K-means tends to vegetated ones.
 
-Georeferenced mosaics enable visual validation, revealing that cluster boundaries align well with visible land cover transitions in satellite imagery.
+#figure(
+  image("report_figures/kmeans_pamplona.png", width: 90%),
+  caption: [Georeferenced mosaic of K-means clustering results for the Pamplona region, visualized in QGIS software. Different colors represent distinct clusters corresponding to various land cover types.
+  orange: Farming areas
+  light green: Vegetation
+  dark green: Forested areas
+  gray: Urban zones.]
+)
+#figure(
+  image("report_figures/knn_pamplona.png", width: 90%),
+  caption: [Georeferenced mosaic of KNN results for the Pamplona region, visualized in QGIS software. Different colors represent distinct clusters corresponding to various land cover types.
+  orange: Farming areas
+  light green: Vegetation
+  dark green: Forested areas
+  gray: Urban zones.]
+)
+Georeferenced mosaics enable visual validation, revealing that cluster boundaries align well with visible land cover transitions in satellite imagery, but can be a bit difficult to evalueate as a whole because of the amount of detail. This is where a PCA plot helps to summarize the clustering results in a more digestible way.
+
+#figure(
+  image("report_figures/pca_centroids_comparison.png", width: 100%),
+  caption: [PCA projection of 128D embeddings of our patch showing both K-means cluster centroids and KNN calculated centroids from final predictions, together with its training points.]
+)
+
+We observe that the selected KNN classes align almost perfectly with the K-means centroids in PCA space, indicating, helping us to validate the clustering results.
 
 == Practical Considerations
 
@@ -207,15 +246,15 @@ Georeferenced mosaics enable visual validation, revealing that cluster boundarie
 *Data Format:* Parquet columnar storage provides faster loading compared to CSV.
 
 
-= Conclusions and Future Work
+= Conclusions and Future Work <section6>
 
 This paper presented a comprehensive scalability analysis of distributed K-means clustering on large-scale satellite embeddings. Our key findings include:
 
-1. *Scalability:* Spark MLlib achieves near-linear scale-up on 2 million points, validating its suitability for big geospatial data. 
+1. *Scalability:* Spark MLlib achieves near-linear size-up on 2 million points, validating its suitability for big geospatial data. 
 
 2. *Implementation Trade-offs:* While MLlib offers best performance, custom RDD implementations provide educational value and flexibility at acceptable overhead (20-30%). Optimized DataFrame approaches balance usability and performance.
 
-3. *Interpretability:* Hybrid KNN-KMeans approach successfully bridges unsupervised clustering with human-interpretable land cover classes, enabling practical geospatial applications.
+3. *Interpretability:* Hybrid KNN-KMeans approach allowed us to bridge unsupervised clustering with human-interpretable land cover classes, enabling practical geospatial applications.
 
 4. *Reproducibility:* All code, data processing pipelines, and notebooks are open-sourced, facilitating reproduction and extension of results.
 
