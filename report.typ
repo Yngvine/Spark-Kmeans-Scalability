@@ -5,7 +5,7 @@
 #show: ieee.with(
   title: [Scalability Analysis of Distributed K-Means Clustering on Geospatial Satellite Embeddings],
   abstract: [
-    This paper presents a comprehensive scalability study of K-means clustering implementations on large-scale geospatial datasets using Apache Spark. We analyze five different implementations ranging from single-machine NumPy baselines to distributed Spark MLlib and custom RDD-based approaches, processing approximately 12 million satellite image embeddings from the GeoTessera dataset. Our study evaluates performance metrics including training time and Within-Set Sum of Squared Errors (WSSSE) across varying data scales (10% to 100% of the dataset). Additionally, we bridge the interpretability gap of unsupervised clustering by integrating K-Nearest Neighbors (KNN) supervised classification on manually labeled land cover classes (Vegetation, Forest, Urban, Agricultural). Results demonstrate that Spark MLlib achieves near-linear size-up behavior for large datasets, while custom RDD implementations lack efficiency. We provide georeferenced visualization outputs suitable for Geographic Information Systems (GIS), enabling practical land cover analysis applications. Our findings contribute insights into distributed machine learning scalability patterns and practical geospatial data science workflows.
+    This paper presents a comprehensive scalability study of K-means clustering implementations on large-scale geospatial datasets using Apache Spark. We analyze five different implementations ranging from single-machine NumPy baselines to distributed Spark MLlib and custom RDD-based approaches, processing approximately 12 million satellite image embeddings from the GeoTessera dataset. Our study evaluates performance metrics including training time and Within-Set Sum of Squared Errors (WSSSE) across varying data scales (10% to 100% of the dataset). Additionally, we bridge the interpretability gap of unsupervised clustering by integrating K-Nearest Neighbors (KNN) supervised classification on manually labeled land cover classes (Vegetation, Forest, Urban, Agricultural). Results demonstrate that Spark MLlib achieves below-linear size-up behavior for large datasets, while custom RDD implementations lack efficiency. We provide georeferenced visualization outputs suitable for Geographic Information Systems (GIS), enabling practical land cover analysis applications. Our findings contribute insights into distributed machine learning scalability patterns and practical geospatial data science workflows.
   ],
   authors: (
     (
@@ -92,7 +92,7 @@ We implemented and compared five K-means variants:
 
 *4) DataFrame UDF Implementation:* Uses Spark DataFrame API with user-defined functions (UDFs) via `pandas_udf` for distance calculations. Leverages DataFrame optimization but incurs serialization overhead from Python UDFs.
 
-*5) Optimized DataFrame:* Utilizes built-in Spark SQL functions without UDFs, maximizing Catalyst optimizer benefits and reducing serialization costs.
+*5) Optimized DataFrame:* Utilizes built-in Spark SQL functions, leveraging on Summarizer metrics for efficient distance computations without so much UDF overhead. This approach aims to combine DataFrame optimizations with native Spark operations for improved performance.
 
 
 
@@ -112,7 +112,7 @@ The workflow consists of:
 4. Training KNN classifier with Euclidean distance metric
 5. Predicting land cover classes for all 12 million points
 6. Comparing KNN predictions with K-means cluster assignments
-This hybrid approach bridges unsupervised clustering with human-interpretable land cover categories, enabling cross-validation of clustering quality.
+This hybrid approach aims at bridging unsupervised clustering with human-interpretable land cover categories, enabling cross-validation of clustering quality.
 
 == Visualization and Geospatial Output
 
@@ -157,7 +157,6 @@ We evaluate implementations using:
 
 1. *Training Time:* Wall-clock time from initialization to convergence (seconds)
 2. *WSSSE (Within-Set Sum of Squared Errors):* $sum_(i=1)^n min_(j) ||x_i - c_j||^2$ where $x_i$ are data points and $c_j$ are centroids
-3. *Speedup:* Ratio of training time compared to baseline
 4. *Size-up Efficiency:* Deviation from ideal linear scaling as data size increases
 
 == Scalability Test Procedure
@@ -167,7 +166,7 @@ For SizeUp testing , we:
 1. Sample dataset at fractions: 10%, 25%, 50%, 75%, 100%
 2. Train each implementation on each sample size
 3. Record training time and WSSSE
-4. Compare against ideal linear size-up baseline (2× data → 2× time)
+4. Compare against ideal linear size-up baseline (based of fastest result on 10% data: 2× data → 2× time)
 5. Identify performance bottlenecks and overhead sources
 
 Each experiment is repeated with fixed random seed (42) for reproducibility. The dataset is cached in memory before training to eliminate I/O effects from measurements.
@@ -179,7 +178,6 @@ KNN classification quality is validated through:
 - Visual inspection of georeferenced mosaics
 - Cross-tabulation of clusters vs. predicted classes
 - Spatial coherence analysis (neighboring pixels should have similar labels)
-- Comparison with reference land cover datasets when available
 
 = Results and Discussion <section5>
 
@@ -194,7 +192,7 @@ Our scalability experiments reveal distinct performance characteristics:
 
 *Local NumPy Baseline:* Training time grows super-linearly with data size, and although in this experiment it was faster than some distributed implementations for smaller sizes, it could eventually become worse as data sizes increase further. But the most important limitation actually comes to memory avalability, as errors were encountered when trying to run the largest dataset portions on more limited systems. This highlights the limitations of single-machine approaches for large geospatial datasets.
 
-*Spark MLlib:* Demonstrates excellent scalability with growth below the linear baseline. Training time ranges from 5.7 seconds (10% data) to 22.8 seconds (100% data), representing approximately 4× increase for 10× data growth. This sub-linear scaling benefits from Spark's in-memory caching and efficient broadcast mechanisms. WSSSE stabilizes after 15-20 iterations across all data sizes, indicating consistent convergence behavior.
+*Spark MLlib:* Demonstrates excellent scalability with growth below the linear baseline. Training time ranges from 5.7 seconds (10% data) to 22.8 seconds (100% data), representing approximately 4× increase for 10× data growth. This sub-linear scaling benefits from Spark's in-memory caching and efficient broadcast mechanisms.
 
 *Custom RDD Implementation:* Athough it shows the highest initial training times (due to overhead of low-level RDD operations), it exhibits roughly linear scaling with data size. Training time ranges from 212 seconds (10% data) to 309 seconds (100% data), which actually shows a sub-linear tendency. Despite its flaws, it provides a stable custom solution in contrast to the local NumPy version, wich suffers from memory limitations; and DataFrame versions, which end up being significantly slower.
 
@@ -203,13 +201,13 @@ Our scalability experiments reveal distinct performance characteristics:
 == Clustering Quality
 
 All implementations converge to similar WSSSE values (±5% variation) given identical initialization seeds, validating correctness of custom implementations. The four clusters identified correspond roughly to:
-- *Cluster 0:* Dense urban areas (24.1% of pixels)
-- *Cluster 1:* Agricultural croplands (30.7%)
-- *Cluster 2:* Natural vegetation (19.5%)
-- *Cluster 3:* Forested regions (25.7%)
+- *Cluster 0:* Dense urban areas (16.03% of pixels)
+- *Cluster 1:* Agricultural croplands (19.43%)
+- *Cluster 2:* Natural vegetation (33.45%)
+- *Cluster 3:* Forested regions (31.09%)
 
 #figure(
-  image("report_figures/k-means-wms.png", width: 70%),
+  image("report_figures/k-means-wms.png", width: 80%),
   caption: [Sample of WMS satellite imagery from the Pamplona region, showcasing in greater detail than Sentinel-2 the diverse land cover types present. Here the the K-means predictions from our experiments are overlaid on top of the satellite image for visual validation.]
 )
 All implementations use K=4 clusters, maximum 20 iterations, and seed=42 for reproducibility.
@@ -222,7 +220,7 @@ KNN classifier achieves strong spatial coherence in predictions, with neighborin
 - KNN tends to be biased towards forested areas while K-means tends to vegetated ones.
 
 #figure(
-  image("report_figures/kmeans_pamplona.png", width: 90%),
+  image("report_figures/kmeans_pamplona.png", width: 100%),
   caption: [Georeferenced mosaic of K-means clustering results for the Pamplona region, visualized in QGIS software. Different colors represent distinct clusters corresponding to various land cover types.
   orange: Farming areas
   light green: Vegetation
@@ -230,7 +228,7 @@ KNN classifier achieves strong spatial coherence in predictions, with neighborin
   gray: Urban zones.]
 )
 #figure(
-  image("report_figures/knn_pamplona.png", width: 90%),
+  image("report_figures/knn_pamplona.png", width: 100%),
   caption: [Georeferenced mosaic of KNN results for the Pamplona region, visualized in QGIS software. Different colors represent distinct clusters corresponding to various land cover types.
   orange: Farming areas
   light green: Vegetation
@@ -271,7 +269,7 @@ This paper presented a comprehensive scalability analysis of distributed K-means
 
 The labeled dataset (80 points) we used for supervised classification worked really good in this case and region, but it is possible that in other scenarios with more complex land cover types or heterogeneous landscapes a different labeled set would be required to achieve similar classification quality.
 
-*Technical Challenges:* Working with geospatial data presented significant challenges, particularly in managing coordinate reference systems (CRS transformations between EPSG:4326 and EPSG:32630), ensuring spatial coherence in distributed processing, and integrating outputs with GIS environments. However, leveraging prior knowledge in geospatial analysis and careful attention to spatial metadata enabled successful generation of properly georeferenced outputs compatible with professional GIS software. The effort invested in understanding raster operations, spatial indexing (KD-Tree) @kdtree, and CRS handling proved essential for producing scientifically valid results.
+*Technical Challenges:* Working with geospatial data presented significant challenges, particularly in managing coordinate reference systems (CRS transformations between   ), ensuring spatial coherence in distributed processing, and integrating outputs with GIS environments. However, leveraging prior knowledge in geospatial analysis and careful attention to spatial metadata enabled successful generation of properly georeferenced outputs compatible with professional GIS software. The effort invested in understanding raster operations, spatial indexing (KD-Tree) @kdtree, and CRS handling proved essential for producing scientifically valid results.
 
 
 *Future Work:* Several promising directions emerge:
