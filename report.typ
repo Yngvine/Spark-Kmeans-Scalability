@@ -10,7 +10,6 @@
   authors: (
     (
       name: "Igor Vons & Endika Aguirre",
-      department: [Department of Computer Science],
       organization: [Public University of Navarre], 
     ),
   ),
@@ -35,7 +34,7 @@ This paper addresses three key research questions: (1) How do different K-means 
 - Scalability analysis on 2 million 128-dimensional satellite embeddings from the Pamplona region of Spain
 - Integration of supervised KNN classification (80 manually labeled points) to provide interpretable land cover categories
 - Generation of georeferenced GeoTIFF outputs suitable for GIS software integration
-- Open-source codebase with reproducible Jupyter notebooks
+- Open-source codebase with reproducible Jupyter notebooks, available at #link("https://github.com/Yngvine/Spark-Kmeans-Scalability")[https://github.com/Yngvine/Spark-Kmeans-Scalability]
 
 The remainder of this paper is organized as follows: #link(<section2>,[Section II])  reviews related work in distributed clustering and satellite image analysis. #link(<section3>,[Section III]) describes our methodology including dataset preparation and implementation details. #link(<section4>,[Section IV]) details the experimental setup. #link(<section5>,[Section V]) presents scalability results and comparative analysis. #link(<section6>,[Section VI]) concludes with future research directions.
 

@@ -200,8 +200,8 @@ spark = SparkSession.builder \
 
 ### Requirements
 
-- Python 3.8+
-- Apache Spark 3.x
+- Python 3.11
+- PySpark 3.5.7
 - Java 8 or 11 (required for Spark)
 - [uv](https://docs.astral.sh/uv/) package manager (recommended)
 
@@ -225,17 +225,6 @@ uv sync
 source .venv/bin/activate
 ```
 
-### Dependencies
-
-- pyspark>=3.0.0
-- numpy>=1.20.0
-- pandas>=1.3.0
-- matplotlib>=3.3.0
-- scikit-learn>=0.24.0
-- rasterio>=1.2.0
-- pyproj>=3.0.0
-- geopandas>=0.10.0
-- scipy>=1.7.0
 
 ### Expected Outputs
 
