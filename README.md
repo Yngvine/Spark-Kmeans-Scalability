@@ -18,7 +18,7 @@ This project implements and benchmarks multiple K-means clustering implementatio
 - **Embedding dimension**: 128 features per pixel
 - **Geographic coverage**: Multiple tiles around coordinates (42.8°N, -1.6°W)
 - **Spatial resolution**: 1200×1200 pixels per tile
-- **Total pixels**: ~1M+ pixels across multiple tiles
+- **Total pixels**: ~2M pixels across multiple tiles
 - **Data format**: Parquet (columnar storage for efficient processing)
 
 ## 🏗️ Project Structure
@@ -37,9 +37,8 @@ Spark-Kmeans-Scalability/
 ├── knn_vs_kmeans_classification.ipynb     # Main analysis: KNN classification vs K-Means
 ├── sizeup_scalability_test.ipynb          # SizeUp scalability benchmark
 ├── generateEmbeddingParquet.ipynb         # Data preprocessing notebook
-├── geotessera_test.ipynb                  # GeoTessera API testing
 │
-├── GeoTessera_Pamplona_embeddings.parquet # Preprocessed dataset (~12M points)
+├── GeoTessera_Pamplona_embeddings.parquet # Preprocessed dataset (~2M points)
 ├── KNN_POINTS.geojson                     # Manually labeled training data (80 points: 20 per class)
 ├── .python-version                        # Python version configuration
 ├── uv.lock                                # UV package manager lock file
@@ -115,10 +114,10 @@ The project implements and compares **5 different K-means approaches**:
 ### 2. Main Analysis (`knn_vs_kmeans_classification.ipynb`)
 
 - Initialize Spark session with optimized configuration (~16GB memory)
-- Load embeddings dataset (~12M points) and create feature vectors
+- Load embeddings dataset (~2M points) and create feature vectors
 - Load manually labeled training points from KNN_POINTS.geojson (80 points)
 - Train KNN classifier (k=5) on labeled data with 4 classes
-- Predict land cover classes for all ~12M points using KNN
+- Predict land cover classes for all ~2M points using KNN
 - Train K-means clustering (k=4) with Spark MLlib
 - Compare KNN classification vs K-means clustering results
 - PCA 2D visualization with centroids and training points
@@ -204,21 +203,26 @@ spark = SparkSession.builder \
 - Python 3.8+
 - Apache Spark 3.x
 - Java 8 or 11 (required for Spark)
+- [uv](https://docs.astral.sh/uv/) package manager (recommended)
 
-### Setup
+### Setup with UV (Recommended)
 
 ```bash
 # Clone repository
 git clone https://github.com/Yngvine/Spark-Kmeans-Scalability.git
 cd Spark-Kmeans-Scalability
 
-# Install dependencies
-pip install -r requirements.txt
-# Or using pyproject.toml:
-pip install -e .
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Verify PySpark installation
-python -c "from pyspark.sql import SparkSession; print('PySpark OK')"
+# Create virtual environment and install dependencies
+uv sync
+
+# Activate the virtual environment
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
 ```
 
 ### Dependencies
@@ -230,17 +234,8 @@ python -c "from pyspark.sql import SparkSession; print('PySpark OK')"
 - scikit-learn>=0.24.0
 - rasterio>=1.2.0
 - pyproj>=3.0.0
-
-## 🚀 Usage
-
-### Run Main Analysis
-
-```bash
-# Open Jupyter notebook
-jupyter notebook spark_kmeans_scalability.ipynb
-
-# Or use VS Code with Jupyter extension
-```
+- geopandas>=0.10.0
+- scipy>=1.7.0
 
 ### Expected Outputs
 
@@ -249,38 +244,6 @@ jupyter notebook spark_kmeans_scalability.ipynb
 - `GeoTessera_Pamplona_embeddings.parquet`: Processed embedding data
 - Console output: Performance metrics and statistics
 - Plots: PCA projections, confusion matrices, scalability curves
-
-## 📊 Example Outputs
-
-### Cluster Distribution
-
-```
-Cluster 0: 245,832 pixels (24.12%)
-Cluster 1: 312,456 pixels (30.67%)
-Cluster 2: 198,234 pixels (19.46%)
-Cluster 3: 262,478 pixels (25.75%)
-```
-
-### KNN Classification Accuracy
-
-```
-Test accuracy: 94.5%
-
-Classification Report:
-                    precision  recall  f1-score  support
-Vegetation              0.96    0.94      0.95     1423
-Urban                   0.93    0.95      0.94     1387
-Agricultural            0.94    0.93      0.93     1401
-Mixed/Infrastructure    0.95    0.96      0.95     1389
-```
-
-### Scalability Results
-
-- 10% data: 2.3s
-- 25% data: 5.1s
-- 50% data: 9.8s
-- 75% data: 14.2s
-- 100% data: 18.5s
 
 ## 🗺️ GIS Integration
 
@@ -297,19 +260,14 @@ The exported GeoTIFF files can be opened in:
 Layer → Add Raster Layer → output_mosaics/kmeans_mosaic.tiff
 ```
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
-
-**Yngvine**
+## 👨‍💻 Authors
 
 - GitHub: [@Yngvine](https://github.com/Yngvine)
+- GitHub: [@Ninjalice](https://github.com/Ninjalice)
 
 ## 🙏 Acknowledgments
 
