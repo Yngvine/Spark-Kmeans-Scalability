@@ -181,8 +181,21 @@ class CustomRDDKMeansModel(KMeansInterface):
             
             if change < 1e-4:
                 print(f"Converged at iteration {i}")
-                break       
- 
+                break
+        
+        # Calculate final WSSSE
+        centroids_broadcast = data.sparkSession.sparkContext.broadcast(self.centroids)
+        
+        def min_sq_dist(p, centers):
+            closest_dist = float("inf")
+            for center in centers:
+                 dist = np.sum((p - center)**2)
+                 if dist < closest_dist:
+                     closest_dist = dist
+            return closest_dist
+
+        self.training_cost = rdd.map(lambda p: min_sq_dist(p, centroids_broadcast.value)).reduce(lambda x, y: x + y)
+        print(f"WSSSE: {self.training_cost:.2f}")
 
         self.training_time = time.time() - start_time
         print(f"Training completed in {self.training_time:.2f} seconds")
@@ -267,6 +280,20 @@ class CustomDataFrameKMeansModel(KMeansInterface):
                 print(f"Converged at iteration {i}")
                 break
 
+        # Calculate final WSSSE
+        current_centroids_list = [c.toArray().tolist() for c in self.centroids]
+        bc_centroids = data.sparkSession.sparkContext.broadcast(current_centroids_list)
+
+        @F.udf(DoubleType())
+        def get_min_sq_dist(features):
+            point = features.toArray()
+            centers = bc_centroids.value
+            dists = [np.sum((point - np.array(c))**2) for c in centers]
+            return float(np.min(dists))
+
+        self.training_cost = data.select(get_min_sq_dist(F.col(self.features_col)).alias("dist")).agg(F.sum("dist")).collect()[0][0]
+        print(f"WSSSE: {self.training_cost:.2f}")
+
         self.training_time = time.time() - start_time
         print(f"Training completed in {self.training_time:.2f} seconds")
         return self
@@ -348,6 +375,20 @@ class OptimizedDataFrameKMeansModel(KMeansInterface):
             if max_movement < 1e-4:
                 print(f"Converged at iteration {i}")
                 break
+
+        # Calculate final WSSSE
+        current_centroids_list = [c.toArray().tolist() for c in self.centroids]
+        bc_centroids = data.sparkSession.sparkContext.broadcast(current_centroids_list)
+
+        @F.udf(DoubleType())
+        def get_min_sq_dist(features):
+            point = features.toArray()
+            centers = bc_centroids.value
+            dists = [np.sum((point - np.array(c))**2) for c in centers]
+            return float(np.min(dists))
+
+        self.training_cost = data.select(get_min_sq_dist(F.col(self.features_col)).alias("dist")).agg(F.sum("dist")).collect()[0][0]
+        print(f"WSSSE: {self.training_cost:.2f}")
 
         self.training_time = time.time() - start_time
         print(f"Training completed in {self.training_time:.2f} seconds")
