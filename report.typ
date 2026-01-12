@@ -199,7 +199,7 @@ Our scalability experiments reveal distinct performance characteristics:
 
 == Clustering Quality
 
-All implementations converge to similar WSSSE values (±5% variation) given identical initialization seeds, validating correctness of custom implementations. The four clusters identified correspond roughly to:
+All implementations converge to similar WSSSE values (±0.18% between max and min) given identical initialization seeds, validating correctness of custom implementations. The four clusters identified correspond roughly to:
 - *Cluster 0:* Dense urban areas (16.03% of pixels)
 - *Cluster 1:* Agricultural croplands (19.43%)
 - *Cluster 2:* Natural vegetation (33.45%)
